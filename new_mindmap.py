@@ -21,7 +21,43 @@ def add_newline_after_long_line(text, max_length):
 
 #formatted_text = add_newline_after_long_line(text, max_length)
 #print(formatted_text)
+def init():
+    genai.configure(api_key=os.environ["GENERATIVE_AI_KEY"])
 
+    generation_config = {
+        "temperature": 0.4,
+        "top_p": 1,
+        "top_k": 0,
+        "response_mime_type": "text/plain"
+    }
+
+    safety_settings = [
+        {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+        },
+        {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+        },
+        {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+        },
+        {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+        }
+    ]
+
+    model = genai.GenerativeModel(
+        model_name="gemini-1.5-pro",
+        safety_settings=safety_settings,
+        generation_config=generation_config
+    )
+
+    chat_session = model.start_chat(history=[])
+    return chat_session
 def latex_to_unicode(latex_str):
     return LatexNodes2Text().latex_to_text(latex_str)
 def map(query):
@@ -52,8 +88,10 @@ def map(query):
 
 
     prompt = f"make a mindmap of {topic} using * for headings and spaced text (without *) for definitions format."
-    response = genai.chat(model="models/chat-bison-001", messages=prompt, temperature=0.7)
-    resp=response.last
+    #response = genai.chat(model="models/chat-bison-001", messages=prompt, temperature=0.7)
+    chat=init()
+    response=chat.send_message(prompt)
+    resp=response.text
     resp=re.sub(r'\*\*',"",resp)
     # Remove the leading and trailing whitespaces
     text = resp.strip()
@@ -94,17 +132,15 @@ def map(query):
     if cont.lower() != 'y':
         exit(0)
     nodes_by_type = {"topic": [], "key": [], "sub": []}
-    list_of_tup=[]
+
     # Fill the dictionary with your nodes
     for key, value in rest.items():
         key= re.sub(r"\*\s+","", key)
         nodes_by_type["topic"].append(f"{topic}")
         nodes_by_type["key"].append(f"{key}")
-        list_of_tup.append((topic,key))
         for subn in value:
             subn = re.sub(r"\*\s+", "", subn)
             nodes_by_type["sub"].append(f"{subn}")
-            list_of_tup.append((topic, subn))
     G = nx.DiGraph()
     for key, value in rest.items():
         key = re.sub(r"\*\s+", "", key)
@@ -112,23 +148,20 @@ def map(query):
         for subn in value:
             subn = re.sub(r"\*\s+", "", subn)
             G.add_edge(f"{key}", f"{subn}")
-            list_of_tup.append((key,subn))
 
     # Position layout for the nodes
-    #pos = nx.shell_layout(G)#, k=0.5)
-    pos = nx.spring_layout(G)
+    pos = nx.shell_layout(G)#, k=0.5)
     # Create a list of small changes to be used for positions
-    #changes = [0, 0.02, 0.03, 0.05,0.07,0.09]
+    changes = [0, 0.02, 0.03, 0.05,0.07,0.09]
 
     # Update positions with a small random change
-    #for node in pos:
-        #pos[node] = (pos[node][0] + random.choice(changes), pos[node][1] + random.choice(changes))
+    for node in pos:
+        pos[node] = (pos[node][0] + random.choice(changes), pos[node][1] + random.choice(changes))
     #print(pos)
     #exit(0)
     # Create figure and axes
     fig, ax = plt.subplots(figsize=(40, 40))
-    nx.draw_networkx_edges(G, pos)
-    #nx.draw_networkx_edges(G, pos, ax=ax)
+    nx.draw_networkx_edges(G, pos, ax=ax)
 
     # Draw the edges with varied styles based on hierarchy
     #edge_styles = {"topic-key": "solid", "key-sub": "dotted"}
