@@ -41,8 +41,10 @@ topic= input("Enter topic:")  # Or use dot.view() to display directly
 
 
 prompt = f"make a mindmap of {topic} using * for headings and spaced text (without *) for definitions format."
-response = genai.chat(model="models/chat-bison-001", messages=prompt, temperature=0.7)
-resp=response.last
+model = genai.GenerativeModel(
+        model_name="gemini-1.0-pro").start_chat()
+response = model.send_message(prompt)
+resp=response.text
 resp=re.sub(r'\*\*',"",resp)
 # Remove the leading and trailing whitespaces
 text = resp.strip()
