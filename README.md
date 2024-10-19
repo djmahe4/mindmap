@@ -27,7 +27,7 @@ git clone https://github.com/djmahe4/mindmap
 
 Then you can run the script using Python:
 ```bash
-python mindmap.py
+python new_mindmap.py
 ```
 
 This will generate a mind map and save it as an image file.
