@@ -12,12 +12,6 @@ This script requires the following Python packages:
 - networkx
 - matplotlib
 
-You can install these packages using pip:
-
-```bash
-pip install -r requirements.txt
-```
-
 ## Usage
 
 First install using:
@@ -25,6 +19,11 @@ First install using:
 git clone https://github.com/djmahe4/mindmap
 ```
 
+Then you can install the required packages using pip:
+
+```bash
+pip install -r requirements.txt
+```
 Then you can run the script using Python:
 ```bash
 python new_mindmap.py
